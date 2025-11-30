@@ -89,10 +89,7 @@ java18/
 After running the application, a file named `filetest.txt` will be created in the project root directory containing the Japanese greeting message.
 
 ### Expected Output
-The application will create a file with the following content:
-```
-こんにちは世界
-```
+
 
 ## Development
 
