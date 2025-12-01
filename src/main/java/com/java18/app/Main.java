@@ -7,5 +7,6 @@ public class Main {
 
         FileHandler fileHandler = new FileHandler();
         fileHandler.createFile();
+        System.out.println(fileHandler.readFile());
     }
 }
