@@ -9,6 +9,7 @@ Course-style Maven project demonstrating selected **JDK language and library fea
 | **File I/O and UTF-8** | Writes and reads text with Japanese characters; relies on UTF-8 source encoding and default charset behavior aligned with **JEP 400** (UTF-8 as default charset, JDK 18+). |
 | **Pattern matching for `switch`** | `switch` on a `Notification` with typed `case` labels and records (**JEP 420**, second preview in JDK 18; finalized in a later release). |
 | **JEP 408 — Simple Web Server** | Programmatic static file server using `SimpleFileServer.createFileServer`, with static content under `www/`. |
+| **JEP 418 — Internet-Address Resolution SPI** | Custom `InetAddressResolverProvider` registered under `META-INF/services/`; maps `jep418.course.local` to `127.0.0.77` and delegates other lookups to the built-in resolver. |
 | **`HashMap.newHashMap`** | Factory sizing the table for an expected number of mappings (**JDK 19+**, not JDK 18-specific). |
 
 ## Project layout
@@ -27,8 +28,11 @@ java18/
 │   │   ├── Whatsapp.java
 │   │   └── Service.java
 │   ├── jep408/SimpleWebServerDemo.java
+│   ├── jep418/CourseInetAddressResolverProvider.java
+│   ├── jep418/InetAddressResolutionDemo.java
 │   └── demo/HashMapNewHashMapDemo.java
 ├── src/main/resources/
+│   └── META-INF/services/java.net.spi.InetAddressResolverProvider
 └── filetest.txt                      # Created at project root when Main runs
 ```
 
@@ -57,12 +61,14 @@ After `mvn compile`, you can use the classpath form:
 java -cp target/classes com.java18.app.Main
 java -cp target/classes com.java18.switchcase.Service
 java -cp target/classes com.java18.jep408.SimpleWebServerDemo
+java -cp target/classes com.java18.jep418.InetAddressResolutionDemo
 java -cp target/classes com.java18.demo.HashMapNewHashMapDemo
 ```
 
 - **Main** — creates `filetest.txt` and prints its first line (Japanese greeting).
 - **Service** — prints output for a typed `switch` on `SMS` vs other `Notification` types.
 - **SimpleWebServerDemo** — serves `www/` at `http://127.0.0.1:8080/` by default; optional args: `port` and absolute web root. Press **Enter** to stop the server.
+- **InetAddressResolutionDemo** — resolves the demo hostname `jep418.course.local` via the JEP 418 SPI (optional arg: another hostname to resolve). Shows delegation by resolving `localhost` as well.
 - **HashMapNewHashMapDemo** — prints a short explanation of `HashMap.newHashMap(int)` vs `new HashMap<>(int)`.
 
 Optional port for the web server:
