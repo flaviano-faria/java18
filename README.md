@@ -10,6 +10,7 @@ Course-style Maven project demonstrating selected **JDK language and library fea
 | **Pattern matching for `switch`** | `switch` on a `Notification` with typed `case` labels and records (**JEP 420**, second preview in JDK 18; finalized in a later release). |
 | **JEP 408 — Simple Web Server** | Programmatic static file server using `SimpleFileServer.createFileServer`, with static content under `www/`. |
 | **JEP 418 — Internet-Address Resolution SPI** | Custom `InetAddressResolverProvider` registered under `META-INF/services/`; maps `jep418.course.local` to `127.0.0.77` and delegates other lookups to the built-in resolver. |
+| **JEP 413 — Code snippets in JavaDoc** | `{@snippet}` inline and external-region examples on `SnippetDocDemo`; `maven-javadoc-plugin` passes `--snippet-path` to include `src/main/javadoc/snippets/`. |
 | **`HashMap.newHashMap`** | Factory sizing the table for an expected number of mappings (**JDK 19+**, not JDK 18-specific). |
 
 ## Project layout
@@ -28,9 +29,12 @@ java18/
 │   │   ├── Whatsapp.java
 │   │   └── Service.java
 │   ├── jep408/SimpleWebServerDemo.java
+│   ├── jep413/SnippetDocDemo.java   # JEP 413 {@snippet} demo (see Javadoc output)
 │   ├── jep418/CourseInetAddressResolverProvider.java
 │   ├── jep418/InetAddressResolutionDemo.java
 │   └── demo/HashMapNewHashMapDemo.java
+├── src/main/javadoc/snippets/        # External snippet sources for JEP 413
+│   └── GreetingSnippet.java
 ├── src/main/resources/
 │   └── META-INF/services/java.net.spi.InetAddressResolverProvider
 └── filetest.txt                      # Created at project root when Main runs
@@ -51,6 +55,14 @@ mvn clean compile
 
 Compiled classes are written to `target/classes/`.
 
+API documentation (includes rendered `{@snippet}` blocks for JEP 413):
+
+```bash
+mvn javadoc:javadoc
+```
+
+Open `target/reports/apidocs/com/java18/jep413/SnippetDocDemo.html` in a browser after generation.
+
 ## Run the demos
 
 Run each `main` from the **project root** so relative paths (`filetest.txt`, `www/`) resolve correctly.
@@ -62,6 +74,7 @@ java -cp target/classes com.java18.app.Main
 java -cp target/classes com.java18.switchcase.Service
 java -cp target/classes com.java18.jep408.SimpleWebServerDemo
 java -cp target/classes com.java18.jep418.InetAddressResolutionDemo
+java -cp target/classes com.java18.jep413.SnippetDocDemo
 java -cp target/classes com.java18.demo.HashMapNewHashMapDemo
 ```
 
@@ -69,6 +82,7 @@ java -cp target/classes com.java18.demo.HashMapNewHashMapDemo
 - **Service** — prints output for a typed `switch` on `SMS` vs other `Notification` types.
 - **SimpleWebServerDemo** — serves `www/` at `http://127.0.0.1:8080/` by default; optional args: `port` and absolute web root. Press **Enter** to stop the server.
 - **InetAddressResolutionDemo** — resolves the demo hostname `jep418.course.local` via the JEP 418 SPI (optional arg: another hostname to resolve). Shows delegation by resolving `localhost` as well.
+- **SnippetDocDemo** — runs sample output; the JEP 413 demonstration is the generated Javadoc (`mvn javadoc:javadoc`), which embeds inline and external snippets as copyable code blocks.
 - **HashMapNewHashMapDemo** — prints a short explanation of `HashMap.newHashMap(int)` vs `new HashMap<>(int)`.
 
 Optional port for the web server:
