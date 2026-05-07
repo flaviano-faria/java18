@@ -8,6 +8,7 @@ Course-style Maven project demonstrating selected **JDK language and library fea
 |------|-------------|
 | **File I/O and UTF-8** | Writes and reads text with Japanese characters; relies on UTF-8 source encoding and default charset behavior aligned with **JEP 400** (UTF-8 as default charset, JDK 18+). |
 | **Pattern matching for `switch`** | `switch` on a `Notification` with typed `case` labels and records (**JEP 420**, second preview in JDK 18; finalized in a later release). |
+| **JEP 405 — Record patterns** | `instanceof` and `switch` with record decomposition (including nested patterns) on the same `SMS` / `Whatsapp` types; see `RecordPatternDemo` (second preview in JDK 18; finalized in JDK 21). |
 | **JEP 408 — Simple Web Server** | Programmatic static file server using `SimpleFileServer.createFileServer`, with static content under `www/`. |
 | **JEP 418 — Internet-Address Resolution SPI** | Custom `InetAddressResolverProvider` registered under `META-INF/services/`; maps `jep418.course.local` to `127.0.0.77` and delegates other lookups to the built-in resolver. |
 | **JEP 413 — Code snippets in JavaDoc** | `{@snippet}` inline and external-region examples on `SnippetDocDemo`; `maven-javadoc-plugin` passes `--snippet-path` to include `src/main/javadoc/snippets/`. |
@@ -80,6 +81,7 @@ java -cp target/classes com.java18.demo.HashMapNewHashMapDemo
 
 - **Main** — creates `filetest.txt` and prints its first line (Japanese greeting).
 - **Service** — prints output for a typed `switch` on `SMS` vs other `Notification` types.
+- **RecordPatternDemo** — JEP 405: record patterns in `instanceof`, `switch`, and a nested `Delivery(Notification, int)` example using `SMS` / `Whatsapp`.
 - **SimpleWebServerDemo** — serves `www/` at `http://127.0.0.1:8080/` by default; optional args: `port` and absolute web root. Press **Enter** to stop the server.
 - **InetAddressResolutionDemo** — resolves the demo hostname `jep418.course.local` via the JEP 418 SPI (optional arg: another hostname to resolve). Shows delegation by resolving `localhost` as well.
 - **SnippetDocDemo** — runs sample output; the JEP 413 demonstration is the generated Javadoc (`mvn javadoc:javadoc`), which embeds inline and external snippets as copyable code blocks.
