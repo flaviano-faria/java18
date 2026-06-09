@@ -29,6 +29,7 @@ java18/
 │   │   ├── SMS.java
 │   │   ├── Whatsapp.java
 │   │   └── Service.java
+│   ├── jep405/RecordPatternDemo.java # JEP 405 record patterns (instanceof + switch)
 │   ├── jep408/SimpleWebServerDemo.java
 │   ├── jep413/SnippetDocDemo.java   # JEP 413 {@snippet} demo (see Javadoc output)
 │   ├── jep418/CourseInetAddressResolverProvider.java
@@ -73,6 +74,7 @@ After `mvn compile`, you can use the classpath form:
 ```bash
 java -cp target/classes com.java18.app.Main
 java -cp target/classes com.java18.switchcase.Service
+java -cp target/classes com.java18.jep405.RecordPatternDemo
 java -cp target/classes com.java18.jep408.SimpleWebServerDemo
 java -cp target/classes com.java18.jep418.InetAddressResolutionDemo
 java -cp target/classes com.java18.jep413.SnippetDocDemo
@@ -102,6 +104,73 @@ No third-party libraries: only the **JDK** standard APIs (including `jdk.httpser
 ## Source encoding
 
 `project.build.sourceEncoding` is **UTF-8** in `pom.xml`, matching the non-ASCII sample text in `FileHandler`.
+
+## Null safety
+
+This project is **educational demo code**, not a production library. There are no nullability annotations (`@NonNull` / `@Nullable`), no `Objects.requireNonNull` guards, and no documented null contracts on public methods. A full pass over all 13 Java sources shows **most methods are not null-safe** if callers pass unexpected `null` values.
+
+### Summary
+
+| Aspect | Status |
+|--------|--------|
+| **Overall** | **D+** for null safety — acceptable for controlled `main` demos; not safe as reusable API |
+| **Null contracts** | Undocumented |
+| **Validation at boundaries** | Partial — only `CourseInetAddressResolver` checks some SPI inputs |
+| **Compile status** | `mvn compile` succeeds on JDK 21 |
+
+### Known gaps (by severity)
+
+**High**
+
+| Location | Issue |
+|----------|--------|
+| `FileHandler.readFile()` | `BufferedReader.readLine()` can return `null` at EOF; method returns it unchanged |
+| `RecordPatternDemo.describeNotification(Notification n)` | `switch (n)` throws `NullPointerException` when `n` is `null` |
+| `RecordPatternDemo.describeDelivery(Delivery d)` | `switch (d)` throws `NullPointerException` when `d` is `null` |
+| `CourseInetAddressResolver.lookupByName(...)` | On the demo hostname path, `lookupPolicy.characteristics()` is called without a null check |
+
+**Medium**
+
+| Location | Issue |
+|----------|--------|
+| Records `SMS`, `Whatsapp`, `Delivery` | `String` and `Notification` components accept `null`; no compact constructors |
+| `CourseInetAddressResolverProvider.get(Configuration)` | No validation that `configuration` is non-null |
+| `InetAddressResolutionDemo.main` | Optional CLI hostname (`args[0]`) is not validated before `InetAddress.getAllByName` |
+| `SimpleWebServerDemo` (private helpers) | Null CLI arguments can cause NPE in `Integer.parseInt` or `Path.of` |
+
+**Low / demo-only**
+
+| Location | Issue |
+|----------|--------|
+| `Service.main`, `HashMapNewHashMapDemo.main` | Safe only because locals are constructed with literals |
+| `RecordPatternDemo.describeWithInstanceof` | Handles `null` via the `else` branch (unlike `switch`) |
+
+### What is already null-safe
+
+- **`SnippetDocDemo`** — literals only; no nullable parameters or returns
+- **`Notification`** — marker interface with no methods
+- **`CourseInetAddressResolver.lookupByAddress`** — validates `addr` before reading demo IP bytes
+- **`RecordPatternDemo.describeWithInstanceof`** — `instanceof` record patterns do not match `null`; falls through to `else`
+
+### Recommended hardening (if this grows beyond demos)
+
+1. **`FileHandler.readFile()`** — return `""`, throw `IOException`, or use `Objects.requireNonNullElse(line, "")` so the method never returns `null`.
+2. **`RecordPatternDemo`** — guard `switch` selectors: `if (n == null) return "Unknown notification";` before pattern matching.
+3. **Records** — add compact constructors with `Objects.requireNonNull` on `SMS`, `Whatsapp`, and `Delivery` components.
+4. **SPI layer** — validate `configuration`, `lookupPolicy`, and `builtin` in `CourseInetAddressResolverProvider` before delegation.
+5. **Contracts** — adopt [JSpecify](https://jspecify.dev/) or similar annotations and enforce with NullAway or the Checker Framework in CI.
+
+### Pattern-matching note
+
+In Java, **`instanceof` with record patterns** treats a `null` selector as non-matching (safe). **`switch` on a reference** does **not** — a `null` selector throws `NullPointerException` before any `case` runs. Demo code in `switchcase/Service` and `jep405/RecordPatternDemo` illustrates both behaviors.
+
+## Design notes
+
+- **Separation by JEP** — each feature lives in its own package (`jep405`, `jep408`, …) so demos can be run and taught independently.
+- **Shared domain model** — `switchcase/` records (`SMS`, `Whatsapp`) are reused by JEP 420-style switch and JEP 405 record-pattern examples.
+- **SPI registration** — JEP 418 relies on the standard `ServiceLoader` file at `src/main/resources/META-INF/services/java.net.spi.InetAddressResolverProvider`; the provider must be on the classpath when running `InetAddressResolutionDemo`.
+- **Relative paths** — `FileHandler` writes `filetest.txt` in the working directory; `SimpleWebServerDemo` defaults to `./www`. Always run from the **project root** unless you pass an absolute web root.
+- **Internal APIs** — JEP 408 uses `com.sun.net.httpserver` types shipped with the JDK; no extra Maven dependencies.
 
 ## Tests
 
